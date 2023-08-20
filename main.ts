@@ -1,32 +1,42 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import {
+	App,
+	Editor,
+	MarkdownPostProcessorContext,
+	MarkdownView,
+	Modal,
+	Notice,
+	Plugin,
+	PluginSettingTab,
+	Setting
+} from 'obsidian';
 
 // Remember to rename these classes and interfaces!
 
-interface MyPluginSettings {
+interface FrontmatterKanbanSettings {
 	mySetting: string;
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
+const DEFAULT_SETTINGS: FrontmatterKanbanSettings = {
 	mySetting: 'default'
 }
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class FrontmatterKanban extends Plugin {
+	settings: FrontmatterKanbanSettings;
 
 	async onload() {
 		await this.loadSettings();
 
-		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
-		});
-		// Perform additional things with the ribbon
-		ribbonIconEl.addClass('my-plugin-ribbon-class');
-
 		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
 		const statusBarItemEl = this.addStatusBarItem();
 		statusBarItemEl.setText('Status Bar Text');
+
+
+		// DataviewJS codeblocks.
+		this.registerPriorityCodeblockPostProcessor(
+			"frontmatter-kanban", //this.settings.dataviewJsKeyword TODO make configurable
+			-100,
+			async (source: string, el, ctx) => {} // this.dataviewjs(source, el, ctx, ctx.sourcePath)
+		);
 
 		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
@@ -89,6 +99,17 @@ export default class MyPlugin extends Plugin {
 	async saveSettings() {
 		await this.saveData(this.settings);
 	}
+
+	/** Register a markdown codeblock post processor with the given priority. */
+	public registerPriorityCodeblockPostProcessor(
+		language: string,
+		priority: number,
+		processor: (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) => Promise<void>
+	) {
+		let registered = this.registerMarkdownCodeBlockProcessor(language, processor);
+		registered.sortOrder = priority;
+	}
+
 }
 
 class SampleModal extends Modal {
@@ -108,9 +129,9 @@ class SampleModal extends Modal {
 }
 
 class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+	plugin: FrontmatterKanban;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: FrontmatterKanban) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
