@@ -25,11 +25,10 @@ export const KanbanBoard: React.FC<{}> = () => {
 	const [columns, setColumns] = useState<Column[]>([]);
 	const columnIds = useMemo(() => columns.map(col => col.id), [columns]);
 
-	const createColumn = () => {
-		setColumns(columns => [...columns, {
+	const createColumn = () => setColumns([...columns, {
 		id: uuidv4(),
 		title: `Column ${columns.length + 1}`,
-	}]);}
+	}]);
 
 	const deleteColumn = (id: Id) => setColumns(columns => columns.filter(col => col.id !== id));
 
@@ -60,7 +59,7 @@ export const KanbanBoard: React.FC<{}> = () => {
 				distance: 10
 			}
 		})
-	)
+	);
 
 	const onDragStart = (event: DragStartEvent) => {
 		switch (event.active.data.current?.type) {
@@ -140,16 +139,16 @@ export const KanbanBoard: React.FC<{}> = () => {
 	}
 
 
-	return <div className={"m-auto"}>
+	return <div className="m-auto flex min-h-screen w-full items-center overflow-x-auto overflow-y-hidden  px-[40px]">
 		<DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver}>
 			<div className="m-auto flex gap-4">
-				<div className={"flex gap-4"}>
+				<div className="flex gap-4">
 					<SortableContext items={columnIds}>
 						{columns.map(col => (
 							<ColumnComponent
 								key={col.id}
 								column={col}
-								tasks={tasks.filter(task => task.columnId = col.id)}
+								tasks={tasks.filter(task => task.columnId === col.id)}
 								updateColumn={updateColumn}
 								deleteColumn={deleteColumn}
 								createTask={createTask}
@@ -159,7 +158,7 @@ export const KanbanBoard: React.FC<{}> = () => {
 					</SortableContext>
 				</div>
 				<button onClick={createColumn} className="h-[60px] w-[350px] min-w-[350px] cursor-pointer rounded-lg
-					bg-mainBackgroundColor border-2 border-columnBackgroundColor p-4 ring-rose-500 hover:ring-2 flex  gap-2">
+					bg-mainBackgroundColor border-2 border-columnBackgroundColor p-4 ring-rose-500 hover:ring-2 flex gap-2">
 					<AddIcon/>
 					Add Column
 				</button>
@@ -171,13 +170,13 @@ export const KanbanBoard: React.FC<{}> = () => {
 				<DragOverlay>
 					{activeColumn && (
 						<ColumnComponent
-							column={activeColumn} tasks={tasks.filter(task => task.columnId === activeColumn.id)}
+							column={activeColumn}
+							tasks={tasks.filter(task => task.columnId === activeColumn.id)}
 							updateColumn={updateColumn}
 							deleteColumn={deleteColumn}
 							createTask={createTask}
 							updateTask={updateTask}
 							deleteTask={deleteTask}
-
 						/>
 					)}
 					{activeTask && (
@@ -190,8 +189,6 @@ export const KanbanBoard: React.FC<{}> = () => {
 				</DragOverlay>,
 				document.body
 			)}
-
 		</DndContext>
-
-	</div>;
-};
+	</div>
+}
