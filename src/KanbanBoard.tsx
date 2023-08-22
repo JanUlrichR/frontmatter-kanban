@@ -15,14 +15,20 @@ import {v4 as uuidv4} from 'uuid';
 import {arrayMove, SortableContext} from "@dnd-kit/sortable";
 import {createPortal} from "react-dom";
 import {AddIcon} from "./components/AddIcon";
-import {Column, Id, Task} from "./types";
+import {BoardConfig, Column, Id, Task} from "./types";
 import {ColumnComponent} from "./components/ColumnComponent";
 import {TaskCard} from "./components/TaskCard";
 
-export const KanbanBoard: React.FC<{}> = () => {
+
+
+
+export const KanbanBoard: React.FC<{boardConfig: BoardConfig}> = ({boardConfig}) => {
 	const {vault} = useApp();
 
-	const [columns, setColumns] = useState<Column[]>([]);
+	const [columns, setColumns] = useState<Column[]>(boardConfig.columns.map(columnName => ({
+		id: uuidv4(),
+		title: columnName,
+	})));
 	const columnIds = useMemo(() => columns.map(col => col.id), [columns]);
 
 	const createColumn = () => setColumns([...columns, {
