@@ -18,6 +18,7 @@ import {AddIcon} from "./components/AddIcon";
 import {BoardConfig, Column, Id, Task} from "./types";
 import {ColumnComponent} from "./components/ColumnComponent";
 import {TaskCard} from "./components/TaskCard";
+import {TFile, TFolder} from "obsidian";
 
 
 
@@ -25,8 +26,18 @@ import {TaskCard} from "./components/TaskCard";
 export const KanbanBoard: React.FC<{boardConfig: BoardConfig}> = ({boardConfig}) => {
 	const {vault} = useApp();
 
+	//https://docs.obsidian.md/Plugins/Vault#Modify+files
+
+	const folder = vault.getAbstractFileByPath(boardConfig.cardOrigin);
+	if (folder === null){
+		console.log("There is no folder at path:", boardConfig.cardOrigin)
+	}
+	if (!(folder instanceof TFolder)) {
+		console.log("There is no valid folder at", folder)
+	}
+
 	const [columns, setColumns] = useState<Column[]>(boardConfig.columns.map(columnName => ({
-		id: uuidv4(),
+		id: columnName,
 		title: columnName,
 	})));
 	const columnIds = useMemo(() => columns.map(col => col.id), [columns]);
@@ -42,7 +53,11 @@ export const KanbanBoard: React.FC<{boardConfig: BoardConfig}> = ({boardConfig})
 		(col.id === id) ? {...col, title} : col
 	));
 
-	const [tasks, setTasks] = useState<Task[]>([]);
+	const [tasks, setTasks] = useState<Task[]>((folder as TFolder).children.map(file => ({
+		id: uuidv4(),
+		columnId: "a",
+		content: (file as TFile).basename,
+	})));
 	const createTask = (columnId: Id) => setTasks(tasks => [...tasks, {
 		id: uuidv4(),
 		columnId,
