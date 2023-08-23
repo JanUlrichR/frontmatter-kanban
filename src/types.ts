@@ -1,5 +1,6 @@
 import {z, ZodError} from "zod"
 import {SafeParseError, SafeParseReturnType} from "zod/lib/types";
+import {TFile} from "obsidian";
 
 export type Id = string | number;
 
@@ -12,6 +13,7 @@ export type Task = {
 	id: Id;
 	columnId: Id;
 	content: string;
+	file: TFile;
 };
 
 const BoardConfig = z.object({

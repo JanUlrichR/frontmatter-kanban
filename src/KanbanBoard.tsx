@@ -1,6 +1,6 @@
 import * as React from "react";
 import {useApp} from "./hooks/useApp";
-import {useMemo, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 
 import {
 	DndContext,
@@ -14,19 +14,18 @@ import {
 import {v4 as uuidv4} from 'uuid';
 import {arrayMove, SortableContext} from "@dnd-kit/sortable";
 import {createPortal} from "react-dom";
-import {AddIcon} from "./components/AddIcon";
 import {BoardConfig, Column, Id, Task} from "./types";
 import {ColumnComponent} from "./components/ColumnComponent";
 import {TaskCard} from "./components/TaskCard";
 import {TFile, TFolder} from "obsidian";
+import {getFrontMatterValue, updateFrontmatterValue} from "./frontmatterUtil";
 
 
 
 
 export const KanbanBoard: React.FC<{boardConfig: BoardConfig}> = ({boardConfig}) => {
-	const {vault} = useApp();
+	const {vault, fileManager} = useApp();
 
-	//https://docs.obsidian.md/Plugins/Vault#Modify+files
 
 	const folder = vault.getAbstractFileByPath(boardConfig.cardOrigin);
 	if (folder === null){
@@ -42,34 +41,26 @@ export const KanbanBoard: React.FC<{boardConfig: BoardConfig}> = ({boardConfig})
 	})));
 	const columnIds = useMemo(() => columns.map(col => col.id), [columns]);
 
-	const createColumn = () => setColumns([...columns, {
-		id: uuidv4(),
-		title: `Column ${columns.length + 1}`,
-	}]);
+	const [tasks, setTasks] = useState<Task[]>([]);
 
-	const deleteColumn = (id: Id) => setColumns(columns => columns.filter(col => col.id !== id));
+	useEffect(() => {
+		const taskFiles = (folder as TFolder).children.map(file => file as TFile)
 
-	const updateColumn = (id: Id, title: string) => setColumns(columns => columns.map(col =>
-		(col.id === id) ? {...col, title} : col
-	));
-
-	const [tasks, setTasks] = useState<Task[]>((folder as TFolder).children.map(file => ({
-		id: uuidv4(),
-		columnId: "a",
-		content: (file as TFile).basename,
-	})));
-	const createTask = (columnId: Id) => setTasks(tasks => [...tasks, {
-		id: uuidv4(),
-		columnId,
-		content: `Task ${tasks.length + 1}`,
-	}])
-
-	const deleteTask = (id: Id) => setTasks(tasks => tasks.filter(task => task.id !== id))
-
-	const updateTask = (id: Id, content: string) => setTasks(tasks => tasks.map(task =>
-		(task.id === id) ? {...task, content} : task
-	));
-
+		Promise.all(taskFiles.map(async file => {
+			const column = await getFrontMatterValue(fileManager, file as TFile, boardConfig.frontmatterAttribute);
+			return {
+				file: file,
+				column: column
+			}
+		})).then(tasks => {
+			setTasks(tasks.map(task => ({
+				id: uuidv4(),
+				columnId: task.column,
+				content: task.file.basename,
+				file: task.file
+			})))
+		});
+	}, []);
 
 	const [activeColumn, setActiveColumn] = useState<Column | undefined>(undefined);
 	const [activeTask, setActiveTask] = useState<Task | undefined>(undefined);
@@ -138,6 +129,7 @@ export const KanbanBoard: React.FC<{boardConfig: BoardConfig}> = ({boardConfig})
 
 				if (tasks[activeIndex].columnId != tasks[overIndex].columnId) {
 					tasks[activeIndex].columnId = tasks[overIndex].columnId;
+					updateFrontmatterValue(fileManager, tasks[activeIndex].file, boardConfig.frontmatterAttribute, tasks[overIndex].columnId).then(console.log)
 					return arrayMove(tasks, activeIndex, overIndex - 1);
 				}
 
@@ -153,38 +145,37 @@ export const KanbanBoard: React.FC<{boardConfig: BoardConfig}> = ({boardConfig})
 				const activeIndex = tasks.findIndex((t) => t.id === activeId);
 
 				tasks[activeIndex].columnId = overId;
-				console.log("DROPPING TASK OVER COLUMN", {activeIndex});
+				updateFrontmatterValue(fileManager, tasks[activeIndex].file, boardConfig.frontmatterAttribute, overId).then(console.log)
 				return arrayMove(tasks, activeIndex, activeIndex);
 			});
 		}
 	}
 
-
+	// TODO make Not assigned columns name configurable
 	return <div className="m-auto flex min-h-screen w-full items-center overflow-x-auto overflow-y-hidden  px-[40px]">
 		<DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver}>
 			<div className="m-auto flex gap-4">
 				<div className="flex gap-4">
 					<SortableContext items={columnIds}>
+						{tasks.some(task => !columns.some(col => task.columnId === col.id)) &&
+							<ColumnComponent
+								key={"Not Assigned"}
+								column={{
+									id: "Not Assigned",
+									title: "Not Assigned"
+								}}
+								tasks={tasks.filter(task => !columns.some(col => task.columnId === col.id))}
+							/>
+						}
 						{columns.map(col => (
 							<ColumnComponent
 								key={col.id}
 								column={col}
 								tasks={tasks.filter(task => task.columnId === col.id)}
-								updateColumn={updateColumn}
-								deleteColumn={deleteColumn}
-								createTask={createTask}
-								updateTask={updateTask}
-								deleteTask={deleteTask}/>
+							/>
 						))}
 					</SortableContext>
 				</div>
-				<button onClick={createColumn} className="h-[60px] w-[350px] min-w-[350px] cursor-pointer rounded-lg
-					bg-mainBackgroundColor border-2 border-columnBackgroundColor p-4 ring-rose-500 hover:ring-2 flex gap-2">
-					<AddIcon/>
-					Add Column
-				</button>
-
-
 			</div>
 
 			{createPortal(
@@ -193,18 +184,12 @@ export const KanbanBoard: React.FC<{boardConfig: BoardConfig}> = ({boardConfig})
 						<ColumnComponent
 							column={activeColumn}
 							tasks={tasks.filter(task => task.columnId === activeColumn.id)}
-							updateColumn={updateColumn}
-							deleteColumn={deleteColumn}
-							createTask={createTask}
-							updateTask={updateTask}
-							deleteTask={deleteTask}
+
 						/>
 					)}
 					{activeTask && (
 						<TaskCard
 							task={activeTask}
-							deleteTask={deleteTask}
-							updateTask={updateTask}
 						/>
 					)}
 				</DragOverlay>,
