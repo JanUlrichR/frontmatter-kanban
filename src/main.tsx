@@ -39,6 +39,7 @@ export class Main extends MarkdownRenderChild {
 						"columns": ["a", "b", "c"],
 						"cardOrigin": "origin",
 						"columnWidth": "200px",
+						"columnHeight": "1000px",
 						"defaultColumnName": "Default",
 						"defaultColor": "#FFAA00"
 					})}

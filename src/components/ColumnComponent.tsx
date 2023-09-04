@@ -5,14 +5,16 @@ import {CSS} from "@dnd-kit/utilities";
 import {TaskCard} from "./TaskCard";
 
 import "../../styles.css"
+import {useApp} from "../hooks/useApp";
 
 export const ColumnComponent: React.FC<{
 	column: Column;
 	tasks: Task[];
-	boardConfig : BoardConfig;
+	boardConfig: BoardConfig;
 }> = ({column, tasks, boardConfig}) => {
 	const taskIds = useMemo(() => tasks.map(task => task.id), [tasks]);
 
+	const {vault} = useApp()
 	const {setNodeRef, attributes, listeners, transition, transform, isDragging} = useSortable({
 		id: column.id,
 		data: {
@@ -25,11 +27,14 @@ export const ColumnComponent: React.FC<{
 		transition,
 		transform: CSS.Transform.toString(transform),
 		width: boardConfig.columnWidth || "350px",
+		height: boardConfig.columnHeight || "500px",
+		"--tw-ring-color": boardConfig.defaultColor || vault.getConfig("accentColor"),
+		"borderColor": boardConfig.defaultColor || vault.getConfig("accentColor")
 	}
 
 	if (isDragging) {
-		return <div ref={setNodeRef} style={style} className="bg-columnBackgroundColor opacity-40 border-2 border-pink-500
-     		 w-[350px] h-[500px] rounded-md flex flex-col"/>
+		return <div ref={setNodeRef} style={style}
+					className="bg-columnBackgroundColor opacity-40 border-2 border-pink-500 rounded-md flex flex-col"/>
 	}
 
 	return <div ref={setNodeRef} style={style} className="bg-columnBackgroundColor w-[350px] h-[500px]
@@ -42,10 +47,11 @@ export const ColumnComponent: React.FC<{
 				border-columnBackgroundColor border-4 flex items-center justify-between"
 		>
 			<div className="flex gap-2">
-				<div className="flex justify-center items-center bg-columnBackgroundColor px-2 py-1 text-sm rounded-full">
+				<div
+					className="flex justify-center items-center bg-columnBackgroundColor px-2 py-1 text-sm rounded-full">
 					{tasks.length}
 				</div>
-				{ column.title}
+				{column.title}
 
 			</div>
 		</div>
