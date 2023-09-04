@@ -16,6 +16,10 @@ export type Task = {
 	file: TFile;
 };
 
+const HexColor = z.string().regex(/^#(([0-9a-fA-F]{2}){3}|([0-9a-fA-F]){3})$/)
+
+export type HexColor = z.infer<typeof HexColor>
+
 const BoardConfig = z.object({
 	frontmatterAttribute: z.string(),
 	columns: z.array(z.string()),
@@ -23,7 +27,11 @@ const BoardConfig = z.object({
 	columnWidth: z.string().optional(),
 	columnHeight: z.string().optional(),
 	defaultColumnName: z.string().optional(),
-	defaultColor: z.string().regex(/^#(([0-9a-fA-F]{2}){3}|([0-9a-fA-F]){3})$/).optional()
+	defaultColor: HexColor.optional(),
+	additionalProperties: z.array(z.object({
+		property: z.string(),
+		color: z.string().regex(/^#(([0-9a-fA-F]{2}){3}|([0-9a-fA-F]){3})$/).optional()
+	}))
 })
 
 export type BoardConfig = z.infer<typeof BoardConfig>

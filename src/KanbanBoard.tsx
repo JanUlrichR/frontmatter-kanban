@@ -19,16 +19,15 @@ import {ColumnComponent} from "./components/ColumnComponent";
 import {TaskCard} from "./components/TaskCard";
 import {TFile, TFolder} from "obsidian";
 import {getFrontMatterValue, updateFrontmatterValue} from "./frontmatterUtil";
+import {PropertyLabels, PropertyLabelsExplanation} from "./components/PropertyLabels";
 
 
-
-
-export const KanbanBoard: React.FC<{boardConfig: BoardConfig}> = ({boardConfig}) => {
+export const KanbanBoard: React.FC<{ boardConfig: BoardConfig }> = ({boardConfig}) => {
 	const {vault, fileManager} = useApp();
 
 
 	const folder = vault.getAbstractFileByPath(boardConfig.cardOrigin);
-	if (folder === null){
+	if (folder === null) {
 		console.log("There is no folder at path:", boardConfig.cardOrigin)
 	}
 	if (!(folder instanceof TFolder)) {
@@ -150,52 +149,57 @@ export const KanbanBoard: React.FC<{boardConfig: BoardConfig}> = ({boardConfig})
 		}
 	}
 
-	return <div className="m-auto flex min-h-screen w-full items-center overflow-x-auto overflow-y-hidden  px-[40px]">
-		<DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver}>
-			<div className="m-auto flex gap-4">
-				<div className="flex gap-4">
-					<SortableContext items={columnIds}>
-						{(boardConfig.defaultColumnName || tasks.some(task => !columns.some(col => task.columnId === col.id))) &&
-							<ColumnComponent
-								key={"Not Assigned"}
-								column={{
-									id: "Not Assigned",
-									title: boardConfig.defaultColumnName || "Not Assigned"
-								}}
-								tasks={tasks.filter(task => !columns.some(col => task.columnId === col.id))}
-								boardConfig = {boardConfig}
-							/>
-						}
-						{columns.map(col => (
-							<ColumnComponent
-								key={col.id}
-								column={col}
-								tasks={tasks.filter(task => task.columnId === col.id)}
-								boardConfig = {boardConfig}
-							/>
-						))}
-					</SortableContext>
-				</div>
-			</div>
+	return <div className="m-auto w-full grid justify-items-center gap-0.5" >
+		<PropertyLabelsExplanation boardConfig={boardConfig}/>
 
-			{createPortal(
-				<DragOverlay>
-					{activeColumn && (
-						<ColumnComponent
-							column={activeColumn}
-							tasks={tasks.filter(task => task.columnId === activeColumn.id)}
-							boardConfig = {boardConfig}
-						/>
-					)}
-					{activeTask && (
-						<TaskCard
-							task={activeTask}
-							boardConfig={boardConfig}
-						/>
-					)}
-				</DragOverlay>,
-				document.body
-			)}
-		</DndContext>
+		<div className="m-auto flex w-full items-center overflow-x-auto overflow-y-hidden  px-[40px]">
+
+			<DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver}>
+				<div className="m-auto flex gap-4">
+					<div className="flex gap-4">
+						<SortableContext items={columnIds}>
+							{(boardConfig.defaultColumnName || tasks.some(task => !columns.some(col => task.columnId === col.id))) &&
+								<ColumnComponent
+									key={"Not Assigned"}
+									column={{
+										id: "Not Assigned",
+										title: boardConfig.defaultColumnName || "Not Assigned"
+									}}
+									tasks={tasks.filter(task => !columns.some(col => task.columnId === col.id))}
+									boardConfig={boardConfig}
+								/>
+							}
+							{columns.map(col => (
+								<ColumnComponent
+									key={col.id}
+									column={col}
+									tasks={tasks.filter(task => task.columnId === col.id)}
+									boardConfig={boardConfig}
+								/>
+							))}
+						</SortableContext>
+					</div>
+				</div>
+
+				{createPortal(
+					<DragOverlay>
+						{activeColumn && (
+							<ColumnComponent
+								column={activeColumn}
+								tasks={tasks.filter(task => task.columnId === activeColumn.id)}
+								boardConfig={boardConfig}
+							/>
+						)}
+						{activeTask && (
+							<TaskCard
+								task={activeTask}
+								boardConfig={boardConfig}
+							/>
+						)}
+					</DragOverlay>,
+					document.body
+				)}
+			</DndContext>
+		</div>
 	</div>
 }

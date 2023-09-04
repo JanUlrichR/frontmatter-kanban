@@ -1,4 +1,4 @@
-import {FileManager, TFile} from "obsidian";
+import {FileManager, TFile, Vault} from "obsidian";
 
 import {Id} from "./types";
 
@@ -23,4 +23,9 @@ export const updateFrontmatterValue = async (fileManager: FileManager, file: TFi
 		fm[frontmatterKey] = frontmatterValue
 		return fm
 	});
+}
+
+export const getVaultProperty = (vault: Vault, property: string) => {
+	// @ts-ignore
+	return vault.getConfig(property) as string
 }

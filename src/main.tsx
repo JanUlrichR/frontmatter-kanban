@@ -41,7 +41,11 @@ export class Main extends MarkdownRenderChild {
 						"columnWidth": "200px",
 						"columnHeight": "1000px",
 						"defaultColumnName": "Default",
-						"defaultColor": "#FFAA00"
+						"defaultColor": "#FFAA00",
+						"additionalProperties": [
+							{property: "Category", color: "#ff0073"},
+							{property: "Complexity"},
+						]
 					})}
 
 

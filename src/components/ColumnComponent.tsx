@@ -1,11 +1,12 @@
-import React, {useMemo, useState} from "react";
-import {BoardConfig, Column, Id, Task} from "../types";
+import React, {useMemo} from "react";
+import {BoardConfig, Column, Task} from "../types";
 import {SortableContext, useSortable} from "@dnd-kit/sortable";
 import {CSS} from "@dnd-kit/utilities";
 import {TaskCard} from "./TaskCard";
 
 import "../../styles.css"
 import {useApp} from "../hooks/useApp";
+import {getVaultProperty} from "../frontmatterUtil";
 
 export const ColumnComponent: React.FC<{
 	column: Column;
@@ -15,6 +16,8 @@ export const ColumnComponent: React.FC<{
 	const taskIds = useMemo(() => tasks.map(task => task.id), [tasks]);
 
 	const {vault} = useApp()
+	const vaultAccentColor = getVaultProperty(vault, "accentColor")
+
 	const {setNodeRef, attributes, listeners, transition, transform, isDragging} = useSortable({
 		id: column.id,
 		data: {
@@ -28,8 +31,8 @@ export const ColumnComponent: React.FC<{
 		transform: CSS.Transform.toString(transform),
 		width: boardConfig.columnWidth || "350px",
 		height: boardConfig.columnHeight || "500px",
-		"--tw-ring-color": boardConfig.defaultColor || vault.getConfig("accentColor"),
-		"borderColor": boardConfig.defaultColor || vault.getConfig("accentColor")
+		"--tw-ring-color": boardConfig.defaultColor || vaultAccentColor,
+		"borderColor": boardConfig.defaultColor || vaultAccentColor
 	}
 
 	if (isDragging) {
