@@ -19,7 +19,6 @@ export const updateFrontmatterValue = async (fileManager: FileManager, file: TFi
 	return await fileManager.processFrontMatter(file, fm => {
 		if (!(frontmatterKey in fm)) {
 			console.error("Key", frontmatterKey, "not in frontmatter", fm, "of File", file.path)
-			return fm
 		}
 		fm[frontmatterKey] = frontmatterValue
 		return fm

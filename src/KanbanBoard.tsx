@@ -151,18 +151,17 @@ export const KanbanBoard: React.FC<{boardConfig: BoardConfig}> = ({boardConfig})
 		}
 	}
 
-	// TODO make Not assigned columns name configurable
 	return <div className="m-auto flex min-h-screen w-full items-center overflow-x-auto overflow-y-hidden  px-[40px]">
 		<DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver}>
 			<div className="m-auto flex gap-4">
 				<div className="flex gap-4">
 					<SortableContext items={columnIds}>
-						{tasks.some(task => !columns.some(col => task.columnId === col.id)) &&
+						{(boardConfig.defaultColumnName || tasks.some(task => !columns.some(col => task.columnId === col.id))) &&
 							<ColumnComponent
 								key={"Not Assigned"}
 								column={{
 									id: "Not Assigned",
-									title: "Not Assigned"
+									title: boardConfig.defaultColumnName || "Not Assigned"
 								}}
 								tasks={tasks.filter(task => !columns.some(col => task.columnId === col.id))}
 								boardConfig = {boardConfig}

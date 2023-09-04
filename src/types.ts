@@ -20,7 +20,8 @@ const BoardConfig = z.object({
 	frontmatterAttribute: z.string(),
 	columns: z.array(z.string()),
 	cardOrigin: z.string(),
-	columnWidth: z.string().optional()
+	columnWidth: z.string().optional(),
+	defaultColumnName: z.string().optional()
 })
 
 export type BoardConfig = z.infer<typeof BoardConfig>

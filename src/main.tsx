@@ -38,7 +38,8 @@ export class Main extends MarkdownRenderChild {
 						"frontmatterAttribute": "TEst",
 						"columns": ["a", "b", "c"],
 						"cardOrigin": "origin",
-						"columnWidth": "200px"
+						"columnWidth": "200px",
+						"defaultColumnName": "Default"
 					})}
 
 
