@@ -98,7 +98,6 @@ export const KanbanBoard: React.FC<{boardConfig: BoardConfig}> = ({boardConfig})
 
 		const isActiveAColumn = active.data.current?.type === "Column";
 		if (!isActiveAColumn) return;
-
 		setColumns(columns => {
 			const activeColumnIndex = columns.findIndex(col => col.id === activeId);
 			const overColumnIndex = columns.findIndex(col => col.id === overId);
@@ -191,6 +190,7 @@ export const KanbanBoard: React.FC<{boardConfig: BoardConfig}> = ({boardConfig})
 					{activeTask && (
 						<TaskCard
 							task={activeTask}
+							boardConfig={boardConfig}
 						/>
 					)}
 				</DragOverlay>,

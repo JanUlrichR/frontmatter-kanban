@@ -24,7 +24,7 @@ export const ColumnComponent: React.FC<{
 	const style = {
 		transition,
 		transform: CSS.Transform.toString(transform),
-		width: boardConfig.columnWidth || "350px"
+		width: boardConfig.columnWidth || "350px",
 	}
 
 	if (isDragging) {
@@ -56,6 +56,7 @@ export const ColumnComponent: React.FC<{
 					<TaskCard
 						key={task.id}
 						task={task}
+						boardConfig={boardConfig}
 					/>
 				))}
 			</SortableContext>

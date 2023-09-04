@@ -21,7 +21,8 @@ const BoardConfig = z.object({
 	columns: z.array(z.string()),
 	cardOrigin: z.string(),
 	columnWidth: z.string().optional(),
-	defaultColumnName: z.string().optional()
+	defaultColumnName: z.string().optional(),
+	defaultColor: z.string().regex(/^#(([0-9a-fA-F]{2}){3}|([0-9a-fA-F]){3})$/).optional()
 })
 
 export type BoardConfig = z.infer<typeof BoardConfig>
