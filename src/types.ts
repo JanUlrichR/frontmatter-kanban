@@ -19,7 +19,8 @@ export type Task = {
 const BoardConfig = z.object({
 	frontmatterAttribute: z.string(),
 	columns: z.array(z.string()),
-	cardOrigin: z.string()
+	cardOrigin: z.string(),
+	columnWidth: z.string().optional()
 })
 
 export type BoardConfig = z.infer<typeof BoardConfig>

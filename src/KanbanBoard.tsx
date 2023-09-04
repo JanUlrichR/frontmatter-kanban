@@ -165,6 +165,7 @@ export const KanbanBoard: React.FC<{boardConfig: BoardConfig}> = ({boardConfig})
 									title: "Not Assigned"
 								}}
 								tasks={tasks.filter(task => !columns.some(col => task.columnId === col.id))}
+								boardConfig = {boardConfig}
 							/>
 						}
 						{columns.map(col => (
@@ -172,6 +173,7 @@ export const KanbanBoard: React.FC<{boardConfig: BoardConfig}> = ({boardConfig})
 								key={col.id}
 								column={col}
 								tasks={tasks.filter(task => task.columnId === col.id)}
+								boardConfig = {boardConfig}
 							/>
 						))}
 					</SortableContext>
@@ -184,7 +186,7 @@ export const KanbanBoard: React.FC<{boardConfig: BoardConfig}> = ({boardConfig})
 						<ColumnComponent
 							column={activeColumn}
 							tasks={tasks.filter(task => task.columnId === activeColumn.id)}
-
+							boardConfig = {boardConfig}
 						/>
 					)}
 					{activeTask && (

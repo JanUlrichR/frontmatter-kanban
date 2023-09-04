@@ -37,7 +37,8 @@ export class Main extends MarkdownRenderChild {
 					<div>Sample Config: {JSON.stringify({
 						"frontmatterAttribute": "TEst",
 						"columns": ["a", "b", "c"],
-						"cardOrigin": "origin"
+						"cardOrigin": "origin",
+						"columnWidth": "200px"
 					})}
 
 

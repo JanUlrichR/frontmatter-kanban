@@ -1,9 +1,7 @@
 import React, {useMemo, useState} from "react";
-import {Column, Id, Task} from "../types";
+import {BoardConfig, Column, Id, Task} from "../types";
 import {SortableContext, useSortable} from "@dnd-kit/sortable";
 import {CSS} from "@dnd-kit/utilities";
-import {DeleteIcon} from "./DeleteIcon";
-import {AddIcon} from "./AddIcon";
 import {TaskCard} from "./TaskCard";
 
 import "../../styles.css"
@@ -11,7 +9,8 @@ import "../../styles.css"
 export const ColumnComponent: React.FC<{
 	column: Column;
 	tasks: Task[];
-}> = ({column, tasks, }) => {
+	boardConfig : BoardConfig;
+}> = ({column, tasks, boardConfig}) => {
 	const taskIds = useMemo(() => tasks.map(task => task.id), [tasks]);
 
 	const {setNodeRef, attributes, listeners, transition, transform, isDragging} = useSortable({
@@ -24,7 +23,8 @@ export const ColumnComponent: React.FC<{
 
 	const style = {
 		transition,
-		transform: CSS.Transform.toString(transform)
+		transform: CSS.Transform.toString(transform),
+		width: boardConfig.columnWidth || "350px"
 	}
 
 	if (isDragging) {
@@ -32,7 +32,6 @@ export const ColumnComponent: React.FC<{
      		 w-[350px] h-[500px] rounded-md flex flex-col"/>
 	}
 
-	//TODO make width and height configurable
 	return <div ref={setNodeRef} style={style} className="bg-columnBackgroundColor w-[350px] h-[500px]
   		rounded-md flex flex-col">
 		{/* Column title */}
