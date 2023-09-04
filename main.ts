@@ -8,11 +8,11 @@ import {
 import {Main} from "./src/main";
 
 interface FrontmatterKanbanSettings {
-	mySetting: string;
+	markdownIdentifier: string;
 }
 
 const DEFAULT_SETTINGS: FrontmatterKanbanSettings = {
-	mySetting: 'default'
+	markdownIdentifier: 'fk'
 }
 
 export default class FrontmatterKanban extends Plugin {
@@ -22,7 +22,7 @@ export default class FrontmatterKanban extends Plugin {
 		await this.loadSettings();
 		// DataviewJS codeblocks.
 		this.registerPriorityCodeblockPostProcessor(
-			"fk", //this.settings.dataviewJsKeyword TODO make configurable
+			this.settings.markdownIdentifier,
 			-100,
 			async (source: string, el, ctx) => ctx.addChild(new Main(el, this.app, source))
 		);
@@ -69,13 +69,13 @@ class SampleSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
+			.setName('Markdown Enabler')
+			.setDesc('The language you need to specify in a codeblock to activate a Frontmatter Kanban')
 			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
+				.setPlaceholder('fk')
+				.setValue(this.plugin.settings.markdownIdentifier)
 				.onChange(async (value) => {
-					this.plugin.settings.mySetting = value;
+					this.plugin.settings.markdownIdentifier = value;
 					await this.plugin.saveSettings();
 				}));
 	}
