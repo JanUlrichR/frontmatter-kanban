@@ -1,5 +1,4 @@
-import {z, ZodError} from "zod"
-import {SafeParseError, SafeParseReturnType} from "zod/lib/types";
+import {z} from "zod"
 import {TFile} from "obsidian";
 
 export type Id = string | number;
@@ -61,6 +60,7 @@ export const parseBoardConfig = (config: string) => {
 		return BoardConfig.safeParse(parsedConfig)
 	} catch (e) {
 		console.error(e); // error in the above string (in this case, yes)!
+		// TODO improve Error management
 		return BoardConfig.safeParse("See logs for more information")
 	}
 

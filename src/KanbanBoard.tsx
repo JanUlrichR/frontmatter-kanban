@@ -1,10 +1,11 @@
 import * as React from "react";
-import {useApp} from "./hooks/useApp";
 import {useEffect, useMemo, useState} from "react";
+import {useApp} from "./hooks/useApp";
 
 import {
 	DndContext,
-	DragEndEvent, DragOverEvent,
+	DragEndEvent,
+	DragOverEvent,
 	DragOverlay,
 	DragStartEvent,
 	PointerSensor,
@@ -14,13 +15,15 @@ import {
 import {v4 as uuidv4} from 'uuid';
 import {arrayMove, SortableContext} from "@dnd-kit/sortable";
 import {createPortal} from "react-dom";
-import {BoardConfig, Column, Id, Task} from "./types";
+import {BoardConfig, Column, Task} from "./types";
 import {ColumnComponent} from "./components/ColumnComponent";
 import {TaskCard} from "./components/TaskCard";
 import {FileManager, moment, TFile, TFolder, Vault} from "obsidian";
 import {getFrontMatterValue, updateFrontmatterValue} from "./frontmatterUtil";
-import {PropertyLabels, PropertyLabelsExplanation} from "./components/PropertyLabels";
+import {PropertyLabelsExplanation} from "./components/PropertyLabels";
 
+
+// TODO pull out + convert to es6
 function mapAsync<T, U>(array: T[], callbackfn: (value: T, index: number, array: T[]) => Promise<U>): Promise<U[]> {
 	return Promise.all(array.map(callbackfn));
 }
@@ -65,11 +68,11 @@ const getRelevantTasks = async (boardConfig: BoardConfig, vault: Vault, fileMana
 			async propertyFilter => await getFrontMatterValue(fileManager, file, propertyFilter.property) === propertyFilter.value
 		)
 	}
-	const value = await filterAsync((taskRoot as TFolder).children.map(file => file as TFile),
+	return await filterAsync((taskRoot as TFolder).children.map(file => file as TFile),
 		async file => {
 			// At the start we will exlude the file
 			let relevant = false
-			if (boardConfig.filter?.lastUpdated){
+			if (boardConfig.filter?.lastUpdated) {
 				// Except if it was updated previously
 				const updated = wasUpdatedPreviously(file, boardConfig)
 				relevant = relevant || updated
@@ -84,7 +87,6 @@ const getRelevantTasks = async (boardConfig: BoardConfig, vault: Vault, fileMana
 			return relevant
 		}
 	)
-	return value
 
 }
 

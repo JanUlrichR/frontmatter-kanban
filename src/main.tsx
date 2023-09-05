@@ -5,9 +5,9 @@ import {KanbanBoard} from "./KanbanBoard";
 import {createRoot} from "react-dom/client";
 
 
-import { App } from 'obsidian';
-import { AppContext } from "./context/AppContext";
-import {BoardConfig, parseBoardConfig} from "./types";
+import {App} from 'obsidian';
+import {AppContext} from "./context/AppContext";
+import {parseBoardConfig} from "./types";
 
 export class Main extends MarkdownRenderChild {
 	app: App;
@@ -26,13 +26,13 @@ export class Main extends MarkdownRenderChild {
 	async onload() {
 		const root = createRoot(this.containerEl)
 
-		if (!this.boardConfig.success){
+		if (!this.boardConfig.success) {
 			root.render(
 				<div>There was an error parsing your config
 
-				<div>
-					{this.boardConfig.error.toString()}
-				</div>
+					<div>
+						{this.boardConfig.error.toString()}
+					</div>
 
 					<div>Sample Config: {JSON.stringify({
 						"frontmatterAttribute": "TEst",
@@ -49,7 +49,6 @@ export class Main extends MarkdownRenderChild {
 					})}
 
 
-
 					</div>
 				</div>
 			);
@@ -58,7 +57,7 @@ export class Main extends MarkdownRenderChild {
 
 		root.render(
 			<AppContext.Provider value={this.app}>
-				<KanbanBoard boardConfig={this.boardConfig.data} />
+				<KanbanBoard boardConfig={this.boardConfig.data}/>
 			</AppContext.Provider>
 		);
 	}
