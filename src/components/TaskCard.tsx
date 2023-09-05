@@ -45,6 +45,6 @@ export const TaskCard: React.FC<{
 		<p className="my-auto h-[90%] w-full overflow-y-hidden overflow-x-hidden whitespace-pre-wrap">
 			{task.content}
 		</p>
-		<PropertyLabels task={task} boardConfig={boardConfig}/>
+		{!!boardConfig.additionalProperties && <PropertyLabels task={task} boardConfig={boardConfig}/>}
 	</div>
 }

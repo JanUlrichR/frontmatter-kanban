@@ -17,22 +17,81 @@ import {createPortal} from "react-dom";
 import {BoardConfig, Column, Id, Task} from "./types";
 import {ColumnComponent} from "./components/ColumnComponent";
 import {TaskCard} from "./components/TaskCard";
-import {TFile, TFolder} from "obsidian";
+import {FileManager, moment, TFile, TFolder, Vault} from "obsidian";
 import {getFrontMatterValue, updateFrontmatterValue} from "./frontmatterUtil";
 import {PropertyLabels, PropertyLabelsExplanation} from "./components/PropertyLabels";
+
+function mapAsync<T, U>(array: T[], callbackfn: (value: T, index: number, array: T[]) => Promise<U>): Promise<U[]> {
+	return Promise.all(array.map(callbackfn));
+}
+
+async function someAsync<T>(array: T[], callbackfn: (value: T) => Promise<boolean>): Promise<boolean> {
+	const filterMap = await mapAsync(array, callbackfn);
+	return filterMap.some(it => it)
+}
+
+async function filterAsync<T>(array: T[], callbackfn: (value: T, index: number, array: T[]) => Promise<boolean>): Promise<T[]> {
+	const filterMap = await mapAsync(array, callbackfn);
+	return array.filter((value, index) => filterMap[index]);
+}
+
+const getRelevantTasks = async (boardConfig: BoardConfig, vault: Vault, fileManager: FileManager) => {
+	const taskRoot = vault.getAbstractFileByPath(boardConfig.cardOrigin);
+	if (taskRoot === null) {
+		console.log("There is no root for cards at path:", boardConfig.cardOrigin)
+	}
+	if (!(taskRoot instanceof TFolder)) {
+		console.log("There is no valid folder at", taskRoot)
+	}
+
+	const wasUpdatedPreviously = (file: TFile, boardConfig: BoardConfig) => {
+		if (!boardConfig.filter?.lastUpdated) {
+			return true;
+		}
+		const fileUpdatedDate = moment.unix(file.stat.mtime / 1000)
+		// @ts-ignore
+		const cutoffDate = moment() // today
+			.add(boardConfig.filter.lastUpdated.amount, boardConfig.filter.lastUpdated.unit) // plus configured cutoff
+
+		return fileUpdatedDate >= cutoffDate
+	}
+
+	const hasFilterProperty = async (file: TFile, boardConfig: BoardConfig, fileManager: FileManager) => {
+		if (!boardConfig.filter?.propertyFilters) {
+			return false;
+		}
+		return someAsync(
+			boardConfig.filter.propertyFilters,
+			async propertyFilter => await getFrontMatterValue(fileManager, file, propertyFilter.property) === propertyFilter.value
+		)
+	}
+	const value = await filterAsync((taskRoot as TFolder).children.map(file => file as TFile),
+		async file => {
+			// At the start we will exlude the file
+			let relevant = false
+			if (boardConfig.filter?.lastUpdated){
+				// Except if it was updated previously
+				const updated = wasUpdatedPreviously(file, boardConfig)
+				relevant = relevant || updated
+			}
+
+			if (boardConfig.filter?.propertyFilters) {
+				// Except if it has no filter Properties
+				const hasProp = await hasFilterProperty(file, boardConfig, fileManager)
+				relevant = relevant || !hasProp
+			}
+
+			return relevant
+		}
+	)
+	return value
+
+}
 
 
 export const KanbanBoard: React.FC<{ boardConfig: BoardConfig }> = ({boardConfig}) => {
 	const {vault, fileManager} = useApp();
 
-
-	const folder = vault.getAbstractFileByPath(boardConfig.cardOrigin);
-	if (folder === null) {
-		console.log("There is no folder at path:", boardConfig.cardOrigin)
-	}
-	if (!(folder instanceof TFolder)) {
-		console.log("There is no valid folder at", folder)
-	}
 
 	const [columns, setColumns] = useState<Column[]>(boardConfig.columns.map(columnName => ({
 		id: columnName,
@@ -43,22 +102,22 @@ export const KanbanBoard: React.FC<{ boardConfig: BoardConfig }> = ({boardConfig
 	const [tasks, setTasks] = useState<Task[]>([]);
 
 	useEffect(() => {
-		const taskFiles = (folder as TFolder).children.map(file => file as TFile)
-
-		Promise.all(taskFiles.map(async file => {
-			const column = await getFrontMatterValue(fileManager, file as TFile, boardConfig.frontmatterAttribute);
-			return {
-				file: file,
-				column: column
-			}
-		})).then(tasks => {
-			setTasks(tasks.map(task => ({
-				id: uuidv4(),
-				columnId: task.column,
-				content: task.file.basename,
-				file: task.file
-			})))
-		});
+		getRelevantTasks(boardConfig, vault, fileManager).then(taskFiles => {
+			Promise.all(taskFiles.map(async file => {
+				const column = await getFrontMatterValue(fileManager, file as TFile, boardConfig.frontmatterAttribute);
+				return {
+					file: file,
+					column: column
+				}
+			})).then(tasks => {
+				setTasks(tasks.map(task => ({
+					id: uuidv4(),
+					columnId: task.column,
+					content: task.file.basename,
+					file: task.file
+				})))
+			});
+		})
 	}, []);
 
 	const [activeColumn, setActiveColumn] = useState<Column | undefined>(undefined);
@@ -149,8 +208,8 @@ export const KanbanBoard: React.FC<{ boardConfig: BoardConfig }> = ({boardConfig
 		}
 	}
 
-	return <div className="m-auto w-full grid justify-items-center gap-0.5" >
-		<PropertyLabelsExplanation boardConfig={boardConfig}/>
+	return <div className="m-auto w-full grid justify-items-center gap-0.5">
+		{!!boardConfig.additionalProperties && <PropertyLabelsExplanation boardConfig={boardConfig}/>}
 
 		<div className="m-auto flex w-full items-center overflow-x-auto overflow-y-hidden  px-[40px]">
 
